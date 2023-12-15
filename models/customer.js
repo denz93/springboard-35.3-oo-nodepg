@@ -38,6 +38,36 @@ class Customer {
     return results.rows.map(c => new Customer(c));
   }
 
+  static async getTopCustomers(limit=10) {
+    const result = await db.query(
+      `SELECT c.id,
+        c.first_name AS "firstName",
+        c.last_name AS "lastName",
+        c.phone,
+        c.notes,
+        COUNT(c.id) AS totalReservations
+      FROM customers c
+      LEFT JOIN reservations r
+      ON c.id = r.customer_id
+      GROUP BY c.id
+      ORDER BY totalReservations DESC
+      LIMIT $1`, 
+      [limit]
+    );
+    return result.rows.map(
+      c => new Customer(
+        {
+          id: c.id,
+          firstName: c.firstName,
+          lastName: c.lastName,
+          phone: c.phone,
+          notes: c.notes
+        }
+      )
+      
+    )
+  }
+
   /** find all customers. */
 
   static async all() {

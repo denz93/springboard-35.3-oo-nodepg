@@ -7,6 +7,16 @@ const Reservation = require("./models/reservation");
 
 const router = new express.Router();
 
+router.get('/top-customers', async function(req, res, next) {
+  try {
+    const limit = req.query.limit ?? 10;
+    const topCustomers = await Customer.getTopCustomers(limit);
+    return res.render('top_customers.html', { customers: topCustomers });
+  } catch (err) {
+    return next(err);
+  }
+})
+
 /** Homepage: show list of customers. */
 
 router.get("/", async function(req, res, next) {
