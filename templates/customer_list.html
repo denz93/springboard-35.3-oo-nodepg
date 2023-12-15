@@ -5,7 +5,9 @@
 <a class="btn btn-primary" style="float: right" href="/add/">Add a Customer</a></p>
 
 <h1>Customers</h1>
-
+{% if filterByName %}
+<h2>Search Results: "{{ filterByName }}"</h2>
+{% endif %}
 <ul style="column-count: 4">
   {% for customer in customers %}
   <li><a href="/{{ customer.id }}/">{{ customer.fullName }}</a></li>

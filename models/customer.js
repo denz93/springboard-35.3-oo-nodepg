@@ -18,6 +18,26 @@ class Customer {
     return `${this.firstName} ${this.lastName}`;
   }
 
+  /**
+   * filter all customers by name
+   * @param {string} nameLike 
+   * @returns 
+   */
+  static async filterByName(nameLike) {
+    const results = await db.query(
+      `SELECT id, 
+         first_name AS "firstName",  
+         last_name AS "lastName", 
+         phone, 
+         notes
+       FROM customers
+       WHERE first_name ILIKE $1 OR last_name ILIKE $1
+       ORDER BY last_name, first_name`,
+      [`%${nameLike}%`]
+    );
+    return results.rows.map(c => new Customer(c));
+  }
+
   /** find all customers. */
 
   static async all() {
