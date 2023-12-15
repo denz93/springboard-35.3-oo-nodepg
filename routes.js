@@ -45,10 +45,11 @@ router.post("/add/", async function(req, res, next) {
   try {
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
+    const middleName = req.body.middleName;
     const phone = req.body.phone;
     const notes = req.body.notes;
 
-    const customer = new Customer({ firstName, lastName, phone, notes });
+    const customer = new Customer({ firstName, lastName, phone, notes, middleName });
     await customer.save();
 
     return res.redirect(`/${customer.id}/`);
@@ -90,6 +91,7 @@ router.post("/:id/edit/", async function(req, res, next) {
     const customer = await Customer.get(req.params.id);
     customer.firstName = req.body.firstName;
     customer.lastName = req.body.lastName;
+    customer.middleName = req.body.middleName;
     customer.phone = req.body.phone;
     customer.notes = req.body.notes;
     await customer.save();

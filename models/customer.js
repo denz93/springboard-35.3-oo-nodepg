@@ -6,16 +6,17 @@ const Reservation = require("./reservation");
 /** Customer of the restaurant. */
 
 class Customer {
-  constructor({ id, firstName, lastName, phone, notes }) {
+  constructor({ id, firstName, lastName, phone, notes, middleName }) {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
     this.phone = phone;
     this.notes = notes;
+    this.middleName = middleName
   }
 
   get fullName() {
-    return `${this.firstName} ${this.lastName}`;
+    return this.middleName ? `${this.firstName} ${this.middleName} ${this.lastName}` : `${this.firstName} ${this.lastName}`;
   }
 
   /**
@@ -28,6 +29,7 @@ class Customer {
       `SELECT id, 
          first_name AS "firstName",  
          last_name AS "lastName", 
+         middle_name AS "middleName",
          phone, 
          notes
        FROM customers
@@ -43,6 +45,7 @@ class Customer {
       `SELECT c.id,
         c.first_name AS "firstName",
         c.last_name AS "lastName",
+        middle_name AS "middleName",
         c.phone,
         c.notes,
         COUNT(c.id) AS totalReservations
@@ -54,18 +57,7 @@ class Customer {
       LIMIT $1`, 
       [limit]
     );
-    return result.rows.map(
-      c => new Customer(
-        {
-          id: c.id,
-          firstName: c.firstName,
-          lastName: c.lastName,
-          phone: c.phone,
-          notes: c.notes
-        }
-      )
-      
-    )
+    return result.rows.map(c => new Customer(c))
   }
 
   /** find all customers. */
@@ -74,7 +66,8 @@ class Customer {
     const results = await db.query(
       `SELECT id, 
          first_name AS "firstName",  
-         last_name AS "lastName", 
+         last_name AS "lastName",
+         middle_name AS "middleName", 
          phone, 
          notes
        FROM customers
@@ -90,6 +83,7 @@ class Customer {
       `SELECT id, 
          first_name AS "firstName",  
          last_name AS "lastName", 
+         middle_name AS "middleName",
          phone, 
          notes 
         FROM customers WHERE id = $1`,
@@ -118,17 +112,17 @@ class Customer {
   async save() {
     if (this.id === undefined) {
       const result = await db.query(
-        `INSERT INTO customers (first_name, last_name, phone, notes)
-             VALUES ($1, $2, $3, $4)
+        `INSERT INTO customers (first_name, last_name, phone, notes, middle_name)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING id`,
-        [this.firstName, this.lastName, this.phone, this.notes]
+        [this.firstName, this.lastName, this.phone, this.notes, this.middleName]
       );
       this.id = result.rows[0].id;
     } else {
       await db.query(
-        `UPDATE customers SET first_name=$1, last_name=$2, phone=$3, notes=$4
+        `UPDATE customers SET first_name=$1, last_name=$2, phone=$3, notes=$4, middle_name=$6
              WHERE id=$5`,
-        [this.firstName, this.lastName, this.phone, this.notes, this.id]
+        [this.firstName, this.lastName, this.phone, this.notes, this.id, this.middleName]
       );
     }
   }
