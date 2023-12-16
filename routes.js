@@ -125,4 +125,23 @@ router.post("/:id/add-reservation/", async function(req, res, next) {
   }
 });
 
+router.post('/:customerId/edit-reservation/:reservationId', async function(req, res, next) {
+  try {
+    const { customerId, reservationId } = req.params;
+    const startAt = new Date(req.body.startAt)
+    const { numGuests, notes } = req.body;
+    const reservation = new Reservation({
+      id: reservationId,
+      customerId,
+      startAt,
+      numGuests,
+      notes
+    })
+    await reservation.save()
+    return res.redirect(`/${customerId}/`)
+  } catch (err) {
+    next(err)
+  }
+})
+
 module.exports = router;

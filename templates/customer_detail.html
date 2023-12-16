@@ -19,7 +19,47 @@
     {% if reservations %}
     <ul>
       {% for reservation in reservations %}
-      <li><b>{{ reservation.getformattedStartAt() }}</b> for {{ reservation.numGuests }}</li>
+      <li>
+        <b>{{ reservation.getformattedStartAt() }}</b> for {{ reservation.numGuests }}
+        <span class="btn btn-sm btn-outline-primary" onclick="(() => {document.getElementById('edit-dialog-{{reservation.id}}').showModal();})()">
+          <svg id="i-edit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+            <path d="M30 7 L25 2 5 22 3 29 10 27 Z M21 6 L26 11 Z M5 22 L10 27 Z" />
+        </svg>
+        
+        </span>
+        <dialog id="edit-dialog-{{reservation.id}}">
+          <h2>Update Reservation #{{reservation.id}}</h2>
+          <form id="edit-form-{{reservation.id}}" action="/{{customer.id}}/edit-reservation/{{reservation.id}}" method="POST">
+            <div class="form-group">
+              <label for="edit-start-{{reservation.id}}">Start</label>
+              <input id="edit-start-{{reservation.id}}"
+                     class="form-control"
+                     name="startAt"
+                     value="{{reservation.getWellFormattedStartAt()}}"
+                     placeholder="yyyy-mm-dd hh:mm am/pm"
+              >
+            </div>
+            <div class="form-group">
+              <label for="edit-num-guests-{{reservation.id}}"># of Guests:</label>
+              <input class="form-control"
+                     value="{{reservation.numGuests}}"
+                     name="numGuests"
+                     type="number"
+                     id="edit-num-guests-{{reservation.id}}">
+                    
+            </div>
+            <div class="form-group">
+              <label for="edit-notes-{{reservation.id}}">Notes:</label>
+              <textarea class="form-control"
+                        name="notes"
+                        id="edit-notes-{{reservation.id}}"
+              >{{reservation.notes}}</textarea>
+            </div>
+            <button class="btn btn-primary">Update</button>
+            <button class="btn btn-outline-secondary" onclick="((e) => {e.preventDefault(); document.getElementById('edit-dialog-{{reservation.id}}').close()})(event)">Cancel</button>
+          </form>
+        </dialog>
+      </li>
       {% endfor %}
     </ul>
     {% else %}
@@ -56,7 +96,7 @@
       <button class="btn btn-primary">Add</button>
     </form>
   </div>
-
+  
 </div>
 
 {% endblock %}
