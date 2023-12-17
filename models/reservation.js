@@ -22,6 +22,10 @@ class Reservation {
     return moment(this.startAt).format('MMMM Do YYYY, h:mm a');
   }
 
+  getRelativeStartAt() {
+    return moment(this.startAt).fromNow();
+  }
+
   getWellFormattedStartAt() {
     return moment(this.startAt).format('YYYY-MM-DD hh:mm a');
   }

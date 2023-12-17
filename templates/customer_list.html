@@ -13,7 +13,9 @@
   <li>
     <a href="/{{ customer.id }}/">{{ customer.fullName }}</a>
     {% if customer.lastReservation != null %}
-      <p>{{ customer.lastReservation.getformattedStartAt() }} for {{customer.lastReservation.numGuests}}</p>
+      <p><i>{{ customer.lastReservation.getRelativeStartAt() }} </i> for {{customer.lastReservation.numGuests}}</p>
+    {% else %}
+      <p><i>No reservations</i></p>
     {% endif %}
   </li>
   {% endfor %}
