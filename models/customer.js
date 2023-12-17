@@ -61,7 +61,7 @@ class Customer {
     );
     return results.rows.map(c => {
       const customer = new Customer(c);
-      if (!c.lastReservation) {
+      if (!c.lastReservation || !c.lastReservation.id) {
         customer.lastReservation = null
         return customer
       }
