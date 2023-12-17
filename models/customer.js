@@ -13,6 +13,8 @@ class Customer {
     this.phone = phone;
     this.notes = notes;
     this.middleName = middleName
+    /** @type {Reservation[]} */
+    this.reservations = []
   }
 
   get fullName() {
@@ -26,18 +28,47 @@ class Customer {
    */
   static async filterByName(nameLike) {
     const results = await db.query(
-      `SELECT id, 
-         first_name AS "firstName",  
-         last_name AS "lastName", 
-         middle_name AS "middleName",
-         phone, 
-         notes
-       FROM customers
-       WHERE first_name ILIKE $1 OR last_name ILIKE $1
-       ORDER BY last_name, first_name`,
+      `
+      WITH rs AS (
+        SELECT r.* 
+        FROM reservations r
+        INNER JOIN (
+          SELECT r2.customer_id, MAX(r2.start_at) as max_date
+          FROM reservations r2
+          GROUP BY r2.customer_id
+        ) AS rMax ON rMax.customer_id = r.customer_id AND r.start_at = rMax.max_date
+      )
+      SELECT
+          c.id,
+          c.first_name AS "firstName",
+          c.last_name AS "lastName",
+          c.middle_name AS "middleName",
+          c.phone,
+          c.notes,
+          json_build_object(
+            'id', rs.id,
+            'startAt', rs.start_at,
+            'numGuests', rs.num_guests,
+            'customerId', rs.customer_id,
+            'notes', rs.notes
+          ) AS "lastReservation"
+      FROM customers c
+      LEFT JOIN rs ON rs.customer_id = c.id
+      
+      WHERE c.first_name ILIKE $1 OR c.last_name ILIKE $1
+      ORDER BY c.last_name, c.first_name`,
       [`%${nameLike}%`]
     );
-    return results.rows.map(c => new Customer(c));
+    return results.rows.map(c => {
+      const customer = new Customer(c);
+      if (!c.lastReservation) {
+        customer.lastReservation = null
+        return customer
+      }
+      customer.lastReservation = new Reservation(c.lastReservation)
+
+      return customer
+    });
   }
 
   static async getTopCustomers(limit=10) {
@@ -58,6 +89,36 @@ class Customer {
       [limit]
     );
     return result.rows.map(c => new Customer(c))
+  }
+
+  static async getWithMostReservations(customerId) {
+    const result = await db.query(
+      `SELECT c.id,
+        c.first_name AS "firstName",
+        c.last_name AS "lastName",
+        middle_name AS "middleName",
+        c.phone,
+        c.notes,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'id', r.id, 
+            'startAt', r.start_at, 
+            'numGuests', r.num_guests, 
+            'notes', r.notes, 
+            'customerId', r.customer_id
+          )
+          ORDER BY r.start_at DESC
+        ) AS reservations
+      FROM customers c
+      LEFT JOIN reservations r
+      ON c.id = r.customer_id
+      WHERE c.id = $1
+      GROUP BY c.id
+      `, [customerId]
+    )
+    const customer = new Customer(result.rows[0])
+    customer.reservations = result.rows[0].reservations.map(r = new Reservation(r))
+    return customer
   }
 
   /** find all customers. */
